@@ -118,8 +118,8 @@ public final class TSP {
       System.out.println(content);
    }
 
-   public static void evolve() {
-      chromosomes = Evolution.Evolve(chromosomes, cities);
+   public static void evolve(int generation) {
+      chromosomes = Evolution.Evolve(chromosomes, cities, generation);
    }
 
    /**
@@ -289,6 +289,7 @@ public final class TSP {
          
             writeLog("Run Stats for experiment at: " + currentTime);
             for (int y = 1; y <= runs; y++) {
+               Evolution.mutationRate = Evolution.startMutationRate;
                genMin = 0;
                print(display,  "Run " + y + "\n");
             
@@ -304,7 +305,7 @@ public final class TSP {
                double thisCost = 0.0;
             
                while (generation < 100) {
-                  evolve();
+                  evolve(generation);
                   if(generation % 5 == 0 ) 
                      cities = MoveCities(originalCities); //Move from original cities, so they only move by a maximum of one unit.
                   generation++;
@@ -320,8 +321,10 @@ public final class TSP {
                   NumberFormat nf = NumberFormat.getInstance();
                   nf.setMinimumFractionDigits(2);
                   nf.setMinimumFractionDigits(2);
-               
-                  print(display, "Gen: " + generation + " Cost: " + (int) thisCost);
+
+                  if((generation + 1) % 20 == 0) {
+                      print(display, "Gen: " + generation + " Cost: " + (int) thisCost);
+                  }
                
                   if(display) {
                      updateGUI();
@@ -353,10 +356,11 @@ public final class TSP {
             
             /*
                We expect to calculate the path length (populationSize*(runs+1)*100) times since there is 100 generations, 100 individuals and we have to calculate the path lengths for the initial pop and then for every run, therefore (runs+1)
-            */
+
             if (Chromosome.getNumberOfPathLengthCalculations() > populationSize*(runs+1)*100) {
             	throw new Exception("You calculated the TSP tour length too many times. You can only call Chromosome.calculateCost() populationSize*(runs+1)*2 times at most. Note that Chromosome.calculateCost() is called in the Chromosome constructor too. You calculated the path cost "+(Chromosome.getNumberOfPathLengthCalculations())+" times when you can only call it up to "+(populationSize*(runs+1)*100)+" times.");
             }
+            */
          
                         
          } 

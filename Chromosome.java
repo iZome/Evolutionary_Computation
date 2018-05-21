@@ -40,6 +40,9 @@ final class Chromosome {
          ++numberOfPathLengthCalculations;
     }
 
+
+
+
     /**
      * @param cities The order that this chromosome would visit the cities.
      */
@@ -57,10 +60,6 @@ final class Chromosome {
     void calculateCost(City[] cities) {
         cost = 0;
         for (int i = 0; i < cityIndexes.length - 1; i++) {
-            //System.out.println(cityIndexes.length);
-            //System.out.println(cities.length);
-            //System.out.println(cityIndexes[i]);
-            //System.out.println(Arrays.toString(cityIndexes));
             double dist = cities[cityIndexes[i]].proximity(cities[cityIndexes[i + 1]]);
             cost += dist;
         }

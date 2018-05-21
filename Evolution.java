@@ -5,10 +5,17 @@ import java.util.stream.IntStream;
 class Evolution{
 	/* Parameters for first attempt */
 
-	private static final double mutationRate = 0.01;
+	protected static double startMutationRate = 0.05;
+	protected static double mutationRate;
 	private static final int chromosomeFighters = 5;
 	private static final boolean fittestSurvive = true;
+    private static final int oneFiveGenerationFrequency = 10;
+    private static final double oneFiveChangeRate = 0.90;
+    private static final double oneFiveRule = 0.20;
+
+    /* Class useful */
     private static Random random = new Random(42); // SET SEED FOR TESTING
+    private static int successfulMutations = 0;
 	/**
 	 * The method used to generate a mutant of a chromosome
 	 * @param original The chromosome to mutate.
@@ -22,12 +29,12 @@ class Evolution{
       return new Chromosome(newCityIndexes, cityList);
 	}
 
-	public static  Chromosome MutateSwap(
-	        Chromosome original,
+	public static Chromosome MutateSwap(
+            Chromosome original,
             City [] cityList
     )
     {
-        int [] cityIndexes = original.getCities();
+        int [] cityIndexes = original.cityIndexes;
         for(int pos1 = 0;
             pos1 < original.cityIndexes.length;
             pos1++)
@@ -36,15 +43,14 @@ class Evolution{
             {
                 int pos2 = (int) (original.cityIndexes.length * random.nextFloat());
 
-                int city1 = original.cityIndexes[pos2];
-                int city2 = original.cityIndexes[pos1];
+                int city2 = cityIndexes[pos2];
+                int city1 = cityIndexes[pos1];
 
-                original.cityIndexes[pos1] = city1;
-                original.cityIndexes[pos2] = city2;
+                cityIndexes[pos1] = city2;
+                cityIndexes[pos2] = city1;
             }
         }
-        //original.calculateCost(cityList);
-        return(original);
+        return new Chromosome(cityIndexes, cityList);
     }
 
 	
@@ -113,7 +119,6 @@ class Evolution{
             System.out.println("yo");
         }
 
-
         return new Chromosome(newCityIndexes, cityList);
     }
 
@@ -123,14 +128,17 @@ class Evolution{
 	 * @param cityList List of ciies, needed for the Chromosome constructor calls you will be doing when mutating and breeding Chromosome instances
 	 * @return The new generation of individuals.
 	 */
-   public static Chromosome [] Evolve(Chromosome [] population, City [] cityList){
-      Chromosome [] newPopulation = new Chromosome [population.length]; // orignal code
+   public static Chromosome [] Evolve(
+           Chromosome [] population,
+           City [] cityList,
+           int generation){
+      Chromosome [] crossOverPopulation = new Chromosome [population.length]; // orignal code
 
       int offsetBecauseElitsm = 0;
       if(fittestSurvive)
       {
           offsetBecauseElitsm = 1;
-          newPopulation[0] = population[0];
+          crossOverPopulation[0] = population[0];
       }
 
       for (int i = offsetBecauseElitsm;
@@ -140,18 +148,70 @@ class Evolution{
           Chromosome parent1 = ArenaSelection(population);
           Chromosome parent2 = ArenaSelection(population);
 
-          newPopulation[i] = BreedCrossoverSubsetFill(parent1, parent2, cityList);
+          crossOverPopulation[i] = BreedCrossoverSubsetFill(parent1, parent2, cityList);
 
       }
 
       for (int i = 0; i<population.length; ++i){
-         population[i] = MutateSwap(newPopulation[i], cityList);
+         population[i] = MutateSwap(crossOverPopulation[i], cityList);
       }
-      
+
+      //checkChangeInCost(newPopulation, population);
+
+       oneFiveRuleAddaptiveMutation(crossOverPopulation, population, generation);
+
       return population;
    }
 
-   public static Chromosome ArenaSelection(
+
+    private static void oneFiveRuleAddaptiveMutation(
+            Chromosome[] crossOverPopulation,
+            Chromosome[] population,
+            int generation
+    )
+    {
+        updateSuccessfulMutations(crossOverPopulation, population);
+
+        if((generation + 1) % oneFiveGenerationFrequency == 0)
+        {
+            compareOneFiveRule(crossOverPopulation.length*oneFiveGenerationFrequency);
+            successfulMutations = 0;
+        }
+    }
+
+
+    private static void updateSuccessfulMutations(
+            Chromosome[] crossOverPopulation,
+            Chromosome[] population
+    )
+    {
+        for(int i = 0;
+            i < crossOverPopulation.length;
+            i++)
+        {
+            if(crossOverPopulation[i].cost > population[i].cost)
+            {
+                successfulMutations++;
+            }
+        }
+    }
+
+    private static void compareOneFiveRule(
+            int mutationNumber)
+    {
+       double successfulMutationRate = (double)successfulMutations/(double)mutationNumber;
+
+       if(successfulMutationRate > oneFiveRule)
+       {
+           mutationRate = mutationRate / oneFiveChangeRate;
+       }
+       else if(successfulMutationRate < oneFiveRule)
+       {
+           mutationRate = mutationRate * oneFiveChangeRate;
+       }
+    }
+
+    public static Chromosome ArenaSelection(
            Chromosome [] population)
    {
        Chromosome [] arenaFighters = new Chromosome[chromosomeFighters];
@@ -220,5 +280,26 @@ class Evolution{
            }
        }
        return false;
+   }
+
+   public static boolean checkChangeInCost(
+           Chromosome[] newPopulation,
+           Chromosome[] population
+   )
+   {
+       int mutations = 0;
+
+       for(int i = 0;
+           i < newPopulation.length;
+           i++)
+       {
+           if(newPopulation[i].cost != population[i].cost)
+           {
+               mutations++;
+
+           }
+       }
+       boolean change = mutations > 0;
+       return change;
    }
 }
