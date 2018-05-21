@@ -5,9 +5,9 @@ import java.util.stream.IntStream;
 class Evolution{
 	/* Parameters for first attempt */
 
-	private static final double mutationRate = 0.001;
-	private static final int chromosomeFighters = 10;
-	//private static final boolean fittestSurvive = true;
+	private static final double mutationRate = 0.01;
+	private static final int chromosomeFighters = 5;
+	private static final boolean fittestSurvive = true;
     private static Random random = new Random(42); // SET SEED FOR TESTING
 	/**
 	 * The method used to generate a mutant of a chromosome
@@ -68,8 +68,7 @@ class Evolution{
             City [] cityList
     )
     {
-        int [] cityIndexes = parent1.getCities();
-        int [] newCityIndexes = new int[cityIndexes.length];
+        int [] newCityIndexes = new int[parent1.getCities().length];
         Arrays.fill(newCityIndexes, -1);
 
         int subsetStartPos = (int) (random.nextFloat() * newCityIndexes.length);
@@ -127,7 +126,14 @@ class Evolution{
    public static Chromosome [] Evolve(Chromosome [] population, City [] cityList){
       Chromosome [] newPopulation = new Chromosome [population.length]; // orignal code
 
-      for (int i = 0;
+      int offsetBecauseElitsm = 0;
+      if(fittestSurvive)
+      {
+          offsetBecauseElitsm = 1;
+          newPopulation[0] = population[0];
+      }
+
+      for (int i = offsetBecauseElitsm;
            i<population.length;
            i++)
       {

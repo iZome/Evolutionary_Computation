@@ -297,7 +297,9 @@ public final class TSP {
                for (int x = 0; x < populationSize; x++) {
                   chromosomes[x] = Chromosome.RandomChromosome(cities);
                }
-            
+
+               Chromosome.sortChromosomes(chromosomes, populationSize);
+
                generation = 0;
                double thisCost = 0.0;
             
