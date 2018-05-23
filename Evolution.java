@@ -22,12 +22,6 @@ class Evolution{
 	 * @param cityList list of cities, needed to instantiate the new Chromosome.
 	 * @return Mutated chromosome.
 	 */
-	public static Chromosome Mutate(Chromosome original, City [] cityList){
-      int [] cityIndexes = original.getCities();
-      int [] newCityIndexes = Arrays.copyOf(cityIndexes, cityIndexes.length);
-      
-      return new Chromosome(newCityIndexes, cityList);
-	}
 
 	public static Chromosome MutateSwap(
             Chromosome original,
@@ -61,12 +55,6 @@ class Evolution{
 	 * @param cityList list of cities, needed to instantiate the new Chromosome.
 	 * @return Chromosome resuling from breeding parent.
 	 */
-	public static Chromosome Breed(Chromosome parent1, Chromosome parent2, City [] cityList){
-	      int [] cityIndexes = parent1.getCities();
-	      int [] newCityIndexes = Arrays.copyOf(cityIndexes, cityIndexes.length);
-	      
-	      return new Chromosome(newCityIndexes, cityList);
-    }
 
     public static Chromosome BreedCrossoverSubsetFill(
             Chromosome parent1,
@@ -158,58 +146,12 @@ class Evolution{
 
       //checkChangeInCost(newPopulation, population);
 
-       oneFiveRuleAddaptiveMutation(crossOverPopulation, population, generation);
+      //oneFiveRuleAddaptiveMutation(crossOverPopulation, population, generation);
 
       return population;
    }
 
 
-    private static void oneFiveRuleAddaptiveMutation(
-            Chromosome[] crossOverPopulation,
-            Chromosome[] population,
-            int generation
-    )
-    {
-        updateSuccessfulMutations(crossOverPopulation, population);
-
-        if((generation + 1) % oneFiveGenerationFrequency == 0)
-        {
-            compareOneFiveRule(crossOverPopulation.length*oneFiveGenerationFrequency);
-            successfulMutations = 0;
-        }
-    }
-
-
-    private static void updateSuccessfulMutations(
-            Chromosome[] crossOverPopulation,
-            Chromosome[] population
-    )
-    {
-        for(int i = 0;
-            i < crossOverPopulation.length;
-            i++)
-        {
-            if(crossOverPopulation[i].cost > population[i].cost)
-            {
-                successfulMutations++;
-            }
-        }
-    }
-
-    private static void compareOneFiveRule(
-            int mutationNumber)
-    {
-       double successfulMutationRate = (double)successfulMutations/(double)mutationNumber;
-
-       if(successfulMutationRate > oneFiveRule)
-       {
-           mutationRate = mutationRate / oneFiveChangeRate;
-       }
-       else if(successfulMutationRate < oneFiveRule)
-       {
-           mutationRate = mutationRate * oneFiveChangeRate;
-       }
-    }
 
     public static Chromosome ArenaSelection(
            Chromosome [] population)
@@ -302,4 +244,132 @@ class Evolution{
        boolean change = mutations > 0;
        return change;
    }
+
+    /* SIMULATED ANNEALING local search */
+
+    private static Chromosome simluatedAnnealing(
+            int [] initialCityOrderSolution,
+            double temperature,
+            double coolingRate,
+            double betaInterval,
+            int maxTime,
+            int timeInterval,
+            City [] cityList
+    )
+    {
+        Chromosome currentSolution = new Chromosome(initialCityOrderSolution, cityList);
+        Chromosome bestSolution = new Chromosome(initialCityOrderSolution, cityList);
+
+        int time = 0;
+
+        while(time >= maxTime)
+        {
+
+        }
+
+        return(bestSolution);
+    }
+
+    private static void metropolis(
+            Chromosome currentSolution,
+            Chromosome bestSolution,
+            double temperature,
+            int timeInterval,
+            City [] cityList
+    )
+    {
+        // Burde være < 0
+        while(timeInterval != 0)
+        {
+
+        }
+    }
+
+    private static Chromosome makeNeighbor(
+            int [] cityOrderSolution,
+            City [] cityList
+    )
+    {
+        int subsetStartPos = (int) (random.nextFloat() * cityOrderSolution.length);
+        int subsetEndPos = (int) (random.nextFloat() * cityOrderSolution.length);
+
+        if(subsetEndPos < subsetStartPos)
+        {
+            int tempPos = subsetStartPos;
+            subsetStartPos = subsetEndPos;
+            subsetEndPos = tempPos;
+        }
+        cityOrderSolution = reverseSubArray(cityOrderSolution, subsetStartPos, subsetEndPos);
+        return new Chromosome(cityOrderSolution, cityList);
+
+    }
+
+    private static int [] reverseSubArray(
+            int [] orderArray,
+            int subsetStartPos,
+            int subsetEndPos
+    )
+    {
+        int j = subsetEndPos;
+        for (int i = subsetStartPos;
+             i < subsetStartPos + (subsetStartPos - subsetEndPos)/2;
+             i++)
+        {
+            int tempValue = orderArray[i];
+            orderArray[i] = orderArray[subsetEndPos];
+            orderArray[j] = tempValue;
+            j -= 1;
+        }
+        return(orderArray)
+    }
+
+    /* ONE FIVE RULE addaptive mutation rate */
+
+    private static void oneFiveRuleAddaptiveMutation(
+            Chromosome[] crossOverPopulation,
+            Chromosome[] population,
+            int generation
+    )
+    {
+        updateSuccessfulMutations(crossOverPopulation, population);
+
+        if((generation + 1) % oneFiveGenerationFrequency == 0)
+        {
+            compareOneFiveRule(crossOverPopulation.length*oneFiveGenerationFrequency);
+            successfulMutations = 0;
+        }
+    }
+
+
+    private static void updateSuccessfulMutations(
+            Chromosome[] crossOverPopulation,
+            Chromosome[] population
+    )
+    {
+        for(int i = 0;
+            i < crossOverPopulation.length;
+            i++)
+        {
+            if(crossOverPopulation[i].cost > population[i].cost)
+            {
+                successfulMutations++;
+            }
+        }
+    }
+
+    private static void compareOneFiveRule(
+            int mutationNumber)
+    {
+        double successfulMutationRate = (double)successfulMutations/(double)mutationNumber;
+
+        if(successfulMutationRate > oneFiveRule)
+        {
+            mutationRate = mutationRate / oneFiveChangeRate;
+        }
+        else if(successfulMutationRate < oneFiveRule)
+        {
+            mutationRate = mutationRate * oneFiveChangeRate;
+        }
+    }
+
 }
