@@ -2,21 +2,92 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+import static java.lang.Math.exp;
+
 class Evolution{
 	/* Parameters for first attempt */
 
-	protected static double startMutationRate = 0.05;
+	protected static double startMutationRate = 0.01;
 	protected static double mutationRate;
 	private static final int chromosomeFighters = 5;
 	private static final boolean fittestSurvive = true;
+
+	/* One Five Rule parameters */
     private static final int oneFiveGenerationFrequency = 10;
     private static final double oneFiveChangeRate = 0.90;
     private static final double oneFiveRule = 0.20;
 
+    /* Simulated Annealing parameters */
+
+    private static double defaultTemperature = 10000;
+    private static double defaultBetaInterval = 1;
+    private static int defaultMaxTime = 100;
+    private static int defaultTimeInterval = 1;
+    private static final double coolingEnhancer = 0.05;
+
+
+
     /* Class useful */
     private static Random random = new Random(42); // SET SEED FOR TESTING
     private static int successfulMutations = 0;
-	/**
+
+    /**
+     * Evolve given population to produce the next generation.
+     * @param population The population to evolve.
+     * @param cityList List of ciies, needed for the Chromosome constructor calls you will be doing when mutating and breeding Chromosome instances
+     * @return The new generation of individuals.
+     */
+    public static Chromosome [] Evolve(
+            Chromosome [] population,
+            City [] cityList,
+            int generation){
+        Chromosome [] crossOverPopulation = new Chromosome [population.length]; // orignal code
+
+        int offsetBecauseElitsm = 0;
+        if(fittestSurvive)
+        {
+            offsetBecauseElitsm = 1;
+            crossOverPopulation[0] = population[0];
+          /*crossOverPopulation[0] = simluatedAnnealing(
+                  crossOverPopulation[0].cityIndexes,
+                  defaultTemperature,
+                  defaultCoolingRate,
+                  defaultBetaInterval,
+                  defaultMaxTime,
+                  defaultTimeInterval,
+                  cityList);
+                  */
+        }
+
+        for (int i = offsetBecauseElitsm;
+             i<population.length;
+             i++)
+        {
+            Chromosome parent1 = ArenaSelection(population);
+            Chromosome parent2 = ArenaSelection(population);
+
+            crossOverPopulation[i] = BreedCrossoverSubsetFill(parent1, parent2, cityList);
+
+        }
+
+        for (int i = 0; i<population.length; ++i){
+            population[i] = simluatedAnnealing(
+                    MutateSwap(crossOverPopulation[i], cityList),
+                    defaultTemperature,
+                    defaultBetaInterval,
+                    defaultMaxTime,
+                    defaultTimeInterval,
+                    cityList);
+
+        }
+
+        //checkChangeInCost(newPopulation, population);
+
+        //oneFiveRuleAddaptiveMutation(crossOverPopulation, population, generation);
+
+        return population;
+    }
+    /**
 	 * The method used to generate a mutant of a chromosome
 	 * @param original The chromosome to mutate.
 	 * @param cityList list of cities, needed to instantiate the new Chromosome.
@@ -110,49 +181,11 @@ class Evolution{
         return new Chromosome(newCityIndexes, cityList);
     }
 
-	/**
-	 * Evolve given population to produce the next generation.
-	 * @param population The population to evolve.
-	 * @param cityList List of ciies, needed for the Chromosome constructor calls you will be doing when mutating and breeding Chromosome instances
-	 * @return The new generation of individuals.
-	 */
-   public static Chromosome [] Evolve(
-           Chromosome [] population,
-           City [] cityList,
-           int generation){
-      Chromosome [] crossOverPopulation = new Chromosome [population.length]; // orignal code
 
-      int offsetBecauseElitsm = 0;
-      if(fittestSurvive)
-      {
-          offsetBecauseElitsm = 1;
-          crossOverPopulation[0] = population[0];
-      }
-
-      for (int i = offsetBecauseElitsm;
-           i<population.length;
-           i++)
-      {
-          Chromosome parent1 = ArenaSelection(population);
-          Chromosome parent2 = ArenaSelection(population);
-
-          crossOverPopulation[i] = BreedCrossoverSubsetFill(parent1, parent2, cityList);
-
-      }
-
-      for (int i = 0; i<population.length; ++i){
-         population[i] = MutateSwap(crossOverPopulation[i], cityList);
-      }
-
-      //checkChangeInCost(newPopulation, population);
-
-      //oneFiveRuleAddaptiveMutation(crossOverPopulation, population, generation);
-
-      return population;
-   }
-
-
-
+    /**
+     * @param population
+     * @return
+     */
     public static Chromosome ArenaSelection(
            Chromosome [] population)
    {
@@ -170,6 +203,10 @@ class Evolution{
        return arenaFighters[lastFighterStandingPos];
    }
 
+    /**
+     * @param population
+     * @return
+     */
    public static int getFittestChromosome(Chromosome [] population){
        double [] costArray = new double[population.length];
 
@@ -184,6 +221,10 @@ class Evolution{
        return getMinimum(costArray);
    }
 
+    /**
+     * @param values
+     * @return
+     */
    public static int getMinimum(
            double [] values)
    {
@@ -201,29 +242,12 @@ class Evolution{
        return smallestPos;
    }
 
-   public static boolean checkDuplicates(
-           int[] cityIndexes
-   )
-   {
-       for (int i = 0;
-           i < cityIndexes.length -1;
-           i++){
-           for (int j = i + 1;
-               j < cityIndexes.length;
-               j++)
-           {
-               if(cityIndexes[i] == cityIndexes[j])
-               {
-                   System.out.println(i);
-                   System.out.println(j);
-                   System.out.println(cityIndexes[i]);
-                   return true;
-               }
-           }
-       }
-       return false;
-   }
 
+    /**
+     * @param newPopulation
+     * @param population
+     * @return
+     */
    public static boolean checkChangeInCost(
            Chromosome[] newPopulation,
            Chromosome[] population
@@ -247,44 +271,99 @@ class Evolution{
 
     /* SIMULATED ANNEALING local search */
 
+    /**
+     * @param initialCitySolution
+     * @param temperature
+     * @param betaInterval
+     * @param maxTime
+     * @param timeInterval
+     * @param cityList
+     * @return
+     */
     private static Chromosome simluatedAnnealing(
-            int [] initialCityOrderSolution,
+            Chromosome initialCitySolution,
             double temperature,
-            double coolingRate,
             double betaInterval,
             int maxTime,
             int timeInterval,
             City [] cityList
     )
     {
-        Chromosome currentSolution = new Chromosome(initialCityOrderSolution, cityList);
-        Chromosome bestSolution = new Chromosome(initialCityOrderSolution, cityList);
+
+        //temperature = findIntialTemperatur(timeInterval);
+        Chromosome currentSolution = new Chromosome(initialCitySolution.cityIndexes, initialCitySolution.cost);
+        Chromosome bestSolution = new Chromosome(initialCitySolution.cityIndexes, initialCitySolution.cost);
+
+        CurrentAndBestSolution currentAndBestSolution = new CurrentAndBestSolution(currentSolution, bestSolution);
 
         int time = 0;
 
-        while(time >= maxTime)
+        while(time <= maxTime)
         {
-
+            currentAndBestSolution = metropolis(currentAndBestSolution, temperature, timeInterval, cityList);
+            time = time + timeInterval;
+            temperature = temperature - temperature * coolingEnhancer;
+            timeInterval *= betaInterval;
         }
 
-        return(bestSolution);
+        return(currentAndBestSolution.getBestSolution());
     }
 
-    private static void metropolis(
-            Chromosome currentSolution,
-            Chromosome bestSolution,
+    /**
+     * @param currentAndBestSolution
+     * @param temperature
+     * @param timeInterval
+     * @param cityList
+     * @return
+     */
+    private static CurrentAndBestSolution metropolis(
+            CurrentAndBestSolution currentAndBestSolution,
             double temperature,
             int timeInterval,
             City [] cityList
     )
     {
-        // Burde være < 0
         while(timeInterval != 0)
         {
+            Chromosome newSolution = makeNeighbor(currentAndBestSolution.getCurrentSolution().cityIndexes, cityList);
 
+            double deltaFitness = newSolution.cost - currentAndBestSolution.getCurrentSolution().cost;
+            if(deltaFitness < 0)
+            {
+                currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
+
+                if(newSolution.cost < currentAndBestSolution.getBestSolution().cost)
+                {
+                    currentAndBestSolution.setBestSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
+                }
+            }
+            //else if( random.nextFloat() < exp(-deltaFitness/temperature))
+            else
+            {
+                double probabilityForChoosing = (1- deltaFitness/temperature)/
+                        (1- (currentAndBestSolution.getBestSolution().cost - newSolution.cost)/temperature);
+                if(random.nextFloat() < probabilityForChoosing)
+                {
+                    currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
+                }
+            }
+            timeInterval -= 1;
         }
+        return currentAndBestSolution;
     }
 
+    /*private static double findIntialTemperatur(
+            int timeInterval
+    )
+    {
+        int downHillMoves = 0;
+    }*/
+
+    /**
+     * @param cityOrderSolution
+     * @param cityList
+     * @return
+     */
     private static Chromosome makeNeighbor(
             int [] cityOrderSolution,
             City [] cityList
@@ -304,27 +383,39 @@ class Evolution{
 
     }
 
-    private static int [] reverseSubArray(
+    /**
+     * @param orderArray
+     * @param subsetStartPos
+     * @param subsetEndPos
+     * @return
+     */
+    protected static int [] reverseSubArray(
             int [] orderArray,
             int subsetStartPos,
             int subsetEndPos
     )
     {
+        int checking = ((subsetEndPos - subsetStartPos + 1)/2);
         int j = subsetEndPos;
         for (int i = subsetStartPos;
-             i < subsetStartPos + (subsetStartPos - subsetEndPos)/2;
+             i < subsetStartPos + ((subsetEndPos - subsetStartPos + 1)/2);
              i++)
         {
             int tempValue = orderArray[i];
-            orderArray[i] = orderArray[subsetEndPos];
+            orderArray[i] = orderArray[j];
             orderArray[j] = tempValue;
             j -= 1;
         }
-        return(orderArray)
+        return(orderArray);
     }
 
     /* ONE FIVE RULE addaptive mutation rate */
 
+    /**
+     * @param crossOverPopulation
+     * @param population
+     * @param generation
+     */
     private static void oneFiveRuleAddaptiveMutation(
             Chromosome[] crossOverPopulation,
             Chromosome[] population,
@@ -341,6 +432,10 @@ class Evolution{
     }
 
 
+    /**
+     * @param crossOverPopulation
+     * @param population
+     */
     private static void updateSuccessfulMutations(
             Chromosome[] crossOverPopulation,
             Chromosome[] population
@@ -357,6 +452,9 @@ class Evolution{
         }
     }
 
+    /**
+     * @param mutationNumber
+     */
     private static void compareOneFiveRule(
             int mutationNumber)
     {

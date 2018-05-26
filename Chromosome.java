@@ -53,6 +53,16 @@ final class Chromosome {
     }
 
     /**
+     * @param cityIndexes
+     * @param cost
+     */
+    Chromosome(int[] cityIndexes, double cost)  {
+        this.cityIndexes = Arrays.copyOf(cityIndexes, cityIndexes.length);
+
+        this.cost = cost;
+    }
+
+    /**
      * Calculate the cost of the specified list of cities.
      *
      * @param cities A list of cities.
