@@ -19,11 +19,11 @@ class Evolution{
 
     /* Simulated Annealing parameters */
 
-    private static double defaultTemperature = 10000;
+    private static double defaultTemperature = 1000;
     private static double defaultBetaInterval = 1;
     private static int defaultMaxTime = 100;
     private static int defaultTimeInterval = 1;
-    private static final double coolingEnhancer = 0.05;
+    private static final double coolingEnhancer = 0.15;
 
 
 
@@ -72,7 +72,7 @@ class Evolution{
 
         for (int i = 0; i<population.length; ++i){
             population[i] = simluatedAnnealing(
-                    MutateSwap(crossOverPopulation[i], cityList),
+                    MutateInverse(crossOverPopulation[i], cityList),
                     defaultTemperature,
                     defaultBetaInterval,
                     defaultMaxTime,
@@ -116,6 +116,18 @@ class Evolution{
             }
         }
         return new Chromosome(cityIndexes, cityList);
+    }
+
+    public static Chromosome MutateInverse(
+            Chromosome original,
+            City [] cityList)
+    {
+        if(random.nextFloat() < 0.2)
+        {
+            Chromosome mutated = makeNeighbor(original.cityIndexes, cityList);
+            return(mutated);
+        }
+        return(original);
     }
 
 	
@@ -298,7 +310,7 @@ class Evolution{
 
         int time = 0;
 
-        while(time <= maxTime)
+        while(time <= maxTime && temperature > 10)
         {
             currentAndBestSolution = metropolis(currentAndBestSolution, temperature, timeInterval, cityList);
             time = time + timeInterval;

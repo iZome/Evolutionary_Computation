@@ -20,25 +20,9 @@ final class Chromosome {
      * and crossovers
      */
     protected HashMap<String, Object> metaData = new HashMap<>();
-    
-    /**
-     * The number of times calculateCost() is called
-     */
-     protected static int numberOfPathLengthCalculations = 0;
-     
-     /**
-     * Returns how many times the length of a TSP tour was calculated.
-     */
-    public static int getNumberOfPathLengthCalculations(){   
-      return numberOfPathLengthCalculations;
-    }
-    
-    /**
-     * Increments how many times the length of a TSP tour was calculated.
-     */
-    public static void incrementNumberOfPathLengthCalculations(){   
-         ++numberOfPathLengthCalculations;
-    }
+
+
+    protected static double[][] distanceMatrix;
 
 
 
@@ -70,12 +54,12 @@ final class Chromosome {
     void calculateCost(City[] cities) {
         cost = 0;
         for (int i = 0; i < cityIndexes.length - 1; i++) {
-            double dist = cities[cityIndexes[i]].proximity(cities[cityIndexes[i + 1]]);
+            double dist = distanceMatrix[cityIndexes[i]][cityIndexes[i + 1]];
             cost += dist;
         }
 
-        cost += cities[cityIndexes[0]].proximity(cities[cityIndexes[cityIndexes.length - 1]]); //Adding return home
-        incrementNumberOfPathLengthCalculations();
+        cost += distanceMatrix[cityIndexes[0]][cityIndexes[cityIndexes.length - 1]]; //Adding return home
+
         
     }
 

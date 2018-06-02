@@ -20,6 +20,8 @@ import java.util.Random;
 
 import javax.swing.JFrame;
 
+import static java.lang.Math.round;
+
 public final class TSP {
 
    private static final int cityShiftAmount = 60; //DO NOT CHANGE THIS.
@@ -87,6 +89,7 @@ public final class TSP {
 
    private static Panel statsArea;
    private static TextArea statsText;
+
 
 
    /*
@@ -228,6 +231,26 @@ public final class TSP {
       return newPositions;
    }
 
+   private static double[][] updataDistanceMatrix(double[][] distanceMatrix, City[] cities)
+   {
+       if(!(distanceMatrix.length == cities.length && distanceMatrix[0].length == cities.length))
+       {
+           throw new Error("Uncorrect dimensions for distance matrix.");
+       }
+
+       for (int i = 0;
+            i < cities.length;
+            i++)
+       {
+           for (int j = 0;
+                j < cities.length;
+                j++){
+                distanceMatrix[i][j] = cities[i].proximity(cities[j]);
+           }
+       }
+       return(distanceMatrix);
+   }
+
    public static void main(String[] args) throws Exception {
       /*
           Enable assertions
@@ -286,7 +309,12 @@ public final class TSP {
             
             String currentWorkingDirectory = Paths.get(".").toAbsolutePath().normalize().toString();
             originalCities = cities = LoadCitiesFromFile(currentWorkingDirectory+"/"+"CityList.txt", cities);
-         
+
+            Chromosome.distanceMatrix = new double [cities.length][cities.length];
+            Chromosome.distanceMatrix = updataDistanceMatrix(Chromosome.distanceMatrix, cities);
+
+
+            final long startTime = System.currentTimeMillis();
             writeLog("Run Stats for experiment at: " + currentTime);
             for (int y = 1; y <= runs; y++) {
                Evolution.mutationRate = Evolution.startMutationRate;
@@ -306,8 +334,11 @@ public final class TSP {
             
                while (generation < 100) {
                   evolve(generation);
-                  if(generation % 5 == 0 ) 
-                     cities = MoveCities(originalCities); //Move from original cities, so they only move by a maximum of one unit.
+                  if(generation % 5 == 0 )
+                  {
+                      cities = MoveCities(originalCities); //Move from original cities, so they only move by a maximum of one unit.
+                      Chromosome.distanceMatrix = updataDistanceMatrix(Chromosome.distanceMatrix, cities);
+                  }
                   generation++;
                
                   Chromosome.sortChromosomes(chromosomes, populationSize);
@@ -345,23 +376,16 @@ public final class TSP {
             
                print(display, "");
             }
-         
+
+            final long endTime = System.currentTimeMillis();
             avg = sum / runs;
             print(display, "Statistics after " + runs + " runs");
             print(display, "Solution found after " + generation + " generations." + "\n");
             print(display, "Statistics of minimum cost from each run \n");
             print(display, "Lowest: " + min + "\nAverage: " + avg + "\nHighest: " + max + "\n");
-            
-            System.out.println("Num times path was calculated: "+Chromosome.getNumberOfPathLengthCalculations());
-            
-            /*
-               We expect to calculate the path length (populationSize*(runs+1)*100) times since there is 100 generations, 100 individuals and we have to calculate the path lengths for the initial pop and then for every run, therefore (runs+1)
 
-            if (Chromosome.getNumberOfPathLengthCalculations() > populationSize*(runs+1)*100) {
-            	throw new Exception("You calculated the TSP tour length too many times. You can only call Chromosome.calculateCost() populationSize*(runs+1)*2 times at most. Note that Chromosome.calculateCost() is called in the Chromosome constructor too. You calculated the path cost "+(Chromosome.getNumberOfPathLengthCalculations())+" times when you can only call it up to "+(populationSize*(runs+1)*100)+" times.");
-            }
-            */
-         
+            print(display, "Time used for the " + runs + " runs is: " + round((endTime - startTime)/1000.0) + " seconds");
+
                         
          } 
          catch (NumberFormatException e) {
