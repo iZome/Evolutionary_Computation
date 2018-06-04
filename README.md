@@ -12,4 +12,4 @@ The components consists of tournament parent selection, cross-over, mutation wit
  
  Below is a plot showing the "best", "worst" and average "fitness" of the method over 100 generations performing 100 runs.
 
-![alt text](Python_scripts/plottedRuns.png "Development over generations.")
+![alt text](Python_scripts/results/plottedRuns.png "Development over generations.")
