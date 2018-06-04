@@ -2,7 +2,6 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import static java.lang.Math.exp;
 
 class Evolution{
 	/* Parameters for first attempt */
@@ -128,7 +127,7 @@ class Evolution{
     {
         if(random.nextFloat() < mutationRate)
         {
-            Chromosome mutated = makeNeighbor(original.cityIndexes, cityList);
+            Chromosome mutated = inversion(original.cityIndexes, cityList);
             return(mutated);
         }
         return(original);
@@ -188,7 +187,7 @@ class Evolution{
 
         if(IntStream.of(newCityIndexes).anyMatch(x -> x == -1))
         {
-            System.out.println("yo");
+            System.out.println("Error in crossover.");
         }
 
         return new Chromosome(newCityIndexes, cityList);
@@ -196,8 +195,9 @@ class Evolution{
 
 
     /**
+     * Tournament selection, here called arena selection
      * @param population
-     * @return
+     * @return best fighter
      */
     public static Chromosome ArenaSelection(
             Chromosome [] population)
@@ -218,7 +218,7 @@ class Evolution{
 
     /**
      * @param population
-     * @return
+     * @return index of best fighter
      */
     public static int getFittestChromosome(Chromosome [] population){
         double [] costArray = new double[population.length];
@@ -236,7 +236,7 @@ class Evolution{
 
     /**
      * @param values
-     * @return
+     * @return index of lowest number in a list
      */
     public static int getMinimum(
             double [] values)
@@ -257,9 +257,10 @@ class Evolution{
 
 
     /**
-     * @param newPopulation
-     * @param population
-     * @return
+     * Test if mutation change population
+     * @param newPopulation mutated population
+     * @param population    not mutated population
+     * @return true if the population has changed
      */
     public static boolean checkChangeInCost(
             Chromosome[] newPopulation,
@@ -285,7 +286,8 @@ class Evolution{
     /* SIMULATED ANNEALING local search */
 
     /**
-     * @return
+     * uses default parameteres for simulated annealing
+     * @return solution of simulated annealing
      */
     private static Chromosome simluatedAnnealing(
             Chromosome chromosome,
@@ -301,13 +303,14 @@ class Evolution{
     }
 
     /**
-     * @param initialCitySolution
-     * @param temperature
-     * @param betaInterval
-     * @param maxTime
-     * @param timeInterval
-     * @param cityList
-     * @return
+     * Simulated annealing with metropolis
+     * @param initialCitySolution solution where local search is performed
+     * @param temperature start temperature
+     * @param betaInterval to modify time increase
+     * @param maxTime number of iterations
+     * @param timeInterval time amount increased for a iteration
+     * @param cityList cities stored in City list
+     * @return solution of simulated annealing
      */
     private static Chromosome simluatedAnnealing(
             Chromosome initialCitySolution,
@@ -319,7 +322,6 @@ class Evolution{
     )
     {
 
-        //temperature = findIntialTemperatur(timeInterval);
         Chromosome currentSolution = new Chromosome(initialCitySolution.cityIndexes, initialCitySolution.cost);
         Chromosome bestSolution = new Chromosome(initialCitySolution.cityIndexes, initialCitySolution.cost);
 
@@ -339,11 +341,12 @@ class Evolution{
     }
 
     /**
+     * metropolis method
      * @param currentAndBestSolution
      * @param temperature
      * @param timeInterval
      * @param cityList
-     * @return
+     * @return current and best solution
      */
     private static CurrentAndBestSolution metropolis(
             CurrentAndBestSolution currentAndBestSolution,
@@ -366,7 +369,6 @@ class Evolution{
                     currentAndBestSolution.setBestSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
                 }
             }
-            //else if( random.nextFloat() < exp(-deltaFitness/temperature))
             else
             {
                 double probabilityForChoosing = (1- deltaFitness/temperature)/
@@ -381,13 +383,12 @@ class Evolution{
         return currentAndBestSolution;
     }
 
-    /*private static double findIntialTemperatur(
-            int timeInterval
-    )
-    {
-        int downHillMoves = 0;
-    }*/
-
+    /**
+     * function to generate a close neighbour in simulated annealing
+     * @param cityIndexes
+     * @param cityList
+     * @return Chromosome
+     */
     private static Chromosome neighbor(
             int [] cityIndexes,
             City [] cityList
@@ -420,11 +421,12 @@ class Evolution{
     }
 
     /**
+     * mutate chromosome with inversion
      * @param cityOrderSolution
      * @param cityList
-     * @return
+     * @return Chromosome
      */
-    private static Chromosome makeNeighbor(
+    private static Chromosome inversion(
             int [] cityOrderSolution,
             City [] cityList
     )
@@ -447,7 +449,7 @@ class Evolution{
      * @param orderArray
      * @param subsetStartPos
      * @param subsetEndPos
-     * @return
+     * @return array with reversed subarray
      */
     protected static int [] reverseSubArray(
             int [] orderArray,
@@ -472,8 +474,8 @@ class Evolution{
     /* ONE FIVE RULE addaptive mutation rate */
 
     /**
-     * @param crossOverPopulation
-     * @param population
+     * @param crossOverPopulation population after crossover
+     * @param population population after mutation
      * @param generation
      */
     private static void oneFiveRuleAddaptiveMutation(
@@ -493,8 +495,8 @@ class Evolution{
 
 
     /**
-     * @param crossOverPopulation
-     * @param population
+     * @param crossOverPopulation population after crossover
+     * @param population population after mutation
      */
     private static void updateSuccessfulMutations(
             Chromosome[] crossOverPopulation,
@@ -513,6 +515,7 @@ class Evolution{
     }
 
     /**
+     * update mutation rate based on amount of mutations that improved fitness
      * @param mutationNumber
      */
     private static void compareOneFiveRule(

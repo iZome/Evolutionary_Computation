@@ -335,7 +335,7 @@ public final class TSP {
             /* ADDED BY STNKAR012 */
             Chromosome.distanceMatrix = new double [cities.length][cities.length];
             Chromosome.distanceMatrix = updataDistanceMatrix(Chromosome.distanceMatrix, cities);
-            String progressString;
+            String progressString; //log generation progress for all runs
 
             String results_karsten = "results_karsten" +  ".txt";//randomGenerator.nextInt() + ".txt";
             /* ADDED BY STNKAR012 */
@@ -383,9 +383,7 @@ public final class TSP {
                   nf.setMinimumFractionDigits(2);
                   nf.setMinimumFractionDigits(2);
 
-                  if((generation + 1) % 20 == 0) {
-                      print(display, "Gen: " + generation + " Cost: " + (int) thisCost);
-                  }
+                  print(display, "Gen: " + generation + " Cost: " + (int) thisCost);
 
                   if(display) {
                      updateGUI();
