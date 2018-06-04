@@ -7,23 +7,26 @@ import static java.lang.Math.exp;
 class Evolution{
 	/* Parameters for first attempt */
 
-	protected static double startMutationRate = 0.01;
+
+	protected static double startMutationRate = 0.1;
+	protected static double mutationAmount = 0.3;
 	protected static double mutationRate;
 	private static final int chromosomeFighters = 5;
 	private static final boolean fittestSurvive = true;
 
 	/* One Five Rule parameters */
-    private static final int oneFiveGenerationFrequency = 10;
+	private static final boolean oneFiveActive = true;
+    private static final int oneFiveGenerationFrequency = 5;
     private static final double oneFiveChangeRate = 0.90;
     private static final double oneFiveRule = 0.20;
 
     /* Simulated Annealing parameters */
 
-    private static double defaultTemperature = 1000;
+    private static double defaultTemperature = 100;
     private static double defaultBetaInterval = 1;
-    private static int defaultMaxTime = 100;
+    private static int defaultMaxTime = 10;
     private static int defaultTimeInterval = 1;
-    private static final double coolingEnhancer = 0.15;
+    private static final double coolingEnhancer = 0.05;
 
 
 
@@ -42,21 +45,16 @@ class Evolution{
             City [] cityList,
             int generation){
         Chromosome [] crossOverPopulation = new Chromosome [population.length]; // orignal code
+        Chromosome [] mutationPopulation = new Chromosome [population.length];
 
         int offsetBecauseElitsm = 0;
         if(fittestSurvive)
         {
             offsetBecauseElitsm = 1;
             crossOverPopulation[0] = population[0];
-          /*crossOverPopulation[0] = simluatedAnnealing(
-                  crossOverPopulation[0].cityIndexes,
-                  defaultTemperature,
-                  defaultCoolingRate,
-                  defaultBetaInterval,
-                  defaultMaxTime,
-                  defaultTimeInterval,
-                  cityList);
-                  */
+            /*crossOverPopulation[0] = simluatedAnnealing(
+                  crossOverPopulation[0],
+                  cityList);*/
         }
 
         for (int i = offsetBecauseElitsm;
@@ -70,20 +68,25 @@ class Evolution{
 
         }
 
+
+        for (int i = 0; i<population.length; ++i){
+            mutationPopulation[i] = MutateInverse(crossOverPopulation[i], cityList);
+
+        }
+
         for (int i = 0; i<population.length; ++i){
             population[i] = simluatedAnnealing(
-                    MutateInverse(crossOverPopulation[i], cityList),
-                    defaultTemperature,
-                    defaultBetaInterval,
-                    defaultMaxTime,
-                    defaultTimeInterval,
+                    mutationPopulation[i],
                     cityList);
 
         }
 
         //checkChangeInCost(newPopulation, population);
 
-        //oneFiveRuleAddaptiveMutation(crossOverPopulation, population, generation);
+        if(oneFiveActive)
+        {
+            oneFiveRuleAddaptiveMutation(crossOverPopulation, mutationPopulation, generation);
+        }
 
         return population;
     }
@@ -99,30 +102,31 @@ class Evolution{
             City [] cityList
     )
     {
-        int [] cityIndexes = original.cityIndexes;
-        for(int pos1 = 0;
-            pos1 < original.cityIndexes.length;
-            pos1++)
-        {
-            if(random.nextFloat() < mutationRate)
-            {
-                int pos2 = (int) (original.cityIndexes.length * random.nextFloat());
+        if(random.nextFloat() < mutationRate) {
+            int[] cityIndexes = original.cityIndexes;
+            for (int pos1 = 0;
+                 pos1 < original.cityIndexes.length;
+                 pos1++) {
+                if (random.nextFloat() < mutationAmount) {
+                    int pos2 = (int) (original.cityIndexes.length * random.nextFloat());
 
-                int city2 = cityIndexes[pos2];
-                int city1 = cityIndexes[pos1];
+                    int city2 = cityIndexes[pos2];
+                    int city1 = cityIndexes[pos1];
 
-                cityIndexes[pos1] = city2;
-                cityIndexes[pos2] = city1;
+                    cityIndexes[pos1] = city2;
+                    cityIndexes[pos2] = city1;
+                }
             }
+            return new Chromosome(cityIndexes, cityList);
         }
-        return new Chromosome(cityIndexes, cityList);
+        return original;
     }
 
     public static Chromosome MutateInverse(
             Chromosome original,
             City [] cityList)
     {
-        if(random.nextFloat() < 0.2)
+        if(random.nextFloat() < mutationRate)
         {
             Chromosome mutated = makeNeighbor(original.cityIndexes, cityList);
             return(mutated);
@@ -282,6 +286,22 @@ class Evolution{
    }
 
     /* SIMULATED ANNEALING local search */
+
+    /**
+     * @return
+     */
+    private static Chromosome simluatedAnnealing(
+            Chromosome chromosome,
+            City [] cityList
+    ) {
+        return simluatedAnnealing(
+                chromosome,
+                defaultTemperature ,
+                defaultBetaInterval ,
+                defaultMaxTime ,
+                defaultTimeInterval ,
+                cityList );
+    }
 
     /**
      * @param initialCitySolution

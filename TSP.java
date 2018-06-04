@@ -25,7 +25,7 @@ import static java.lang.Math.round;
 public final class TSP {
 
    private static final int cityShiftAmount = 60; //DO NOT CHANGE THIS.
-	
+
    /**
     * How many cities to use.
     */
@@ -55,7 +55,7 @@ public final class TSP {
     * The list of cities (with current movement applied).
     */
    protected static City[] cities;
-   
+
    /**
     * The list of cities that will be used to determine movement.
     */
@@ -98,17 +98,38 @@ public final class TSP {
    private static void writeLog(String content) {
       String filename = "results.out";
       FileWriter out;
-   
+
       try {
          out = new FileWriter(filename, true);
          out.write(content + "\n");
          out.close();
-      } 
+      }
       catch (IOException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }
+
+    private static void logProgress(String content, int run) {
+        String filename = "progress.out";
+        FileWriter out;
+        boolean append = true;
+
+        if(run == 1)
+        {
+            append = false;
+        }
+
+        try {
+            out = new FileWriter(filename, append);
+            out.write(content + "\n");
+            out.close();
+        }
+        catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
    /*
     *  Deals with printing same content to System.out and GUI
@@ -117,7 +138,7 @@ public final class TSP {
       if(guiEnabled) {
          statsText.append(content + "\n");
       }
-   
+
       System.out.println(content);
    }
 
@@ -132,17 +153,17 @@ public final class TSP {
       Image img = frame.createImage(width, height);
       Graphics g = img.getGraphics();
       FontMetrics fm = g.getFontMetrics();
-   
+
       g.setColor(Color.black);
       g.fillRect(0, 0, width, height);
-   
+
       if (true && (cities != null)) {
          for (int i = 0; i < cityCount; i++) {
             int xpos = cities[i].getx();
             int ypos = cities[i].gety();
             g.setColor(Color.green);
             g.fillOval(xpos - 5, ypos - 5, 10, 10);
-            
+
             //// SHOW Outline of movement boundary
             // xpos = originalCities[i].getx();
             // ypos = originalCities[i].gety();
@@ -152,7 +173,7 @@ public final class TSP {
             // g.drawLine(xpos - cityShiftAmount, ypos, xpos, ypos - cityShiftAmount);
             // g.drawLine(xpos, ypos - cityShiftAmount, xpos + cityShiftAmount, ypos);
          }
-      
+
          g.setColor(Color.gray);
          for (int i = 0; i < cityCount; i++) {
             int icity = chromosomes[0].getCity(i);
@@ -165,10 +186,10 @@ public final class TSP {
                   cities[last].gety());
             }
          }
-                     
+
          int homeCity = chromosomes[0].getCity(0);
          int lastCity = chromosomes[0].getCity(cityCount - 1);
-                     
+
          //Drawing line returning home
          g.drawLine(
                 cities[homeCity].getx(),
@@ -181,23 +202,23 @@ public final class TSP {
 
    private static City[] LoadCitiesFromFile(String filename, City[] citiesArray) {
       ArrayList<City> cities = new ArrayList<City>();
-      try 
+      try
       {
          FileReader inputFile = new FileReader(filename);
          BufferedReader bufferReader = new BufferedReader(inputFile);
          String line;
-         while ((line = bufferReader.readLine()) != null) { 
+         while ((line = bufferReader.readLine()) != null) {
             String [] coordinates = line.split(", ");
             cities.add(new City(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1])));
          }
-      
+
          bufferReader.close();
-      
-      } 
-      catch (Exception e) {
-         System.out.println("Error while reading file line by line:" + e.getMessage());                      
+
       }
-      
+      catch (Exception e) {
+         System.out.println("Error while reading file line by line:" + e.getMessage());
+      }
+
       citiesArray = new City[cities.size()];
       return cities.toArray(citiesArray);
    }
@@ -205,29 +226,29 @@ public final class TSP {
    private static City[] MoveCities(City[]cities) {
       City[] newPositions = new City[cities.length];
       Random randomGenerator = new Random(42); // SET SEED FOR TESTING
-   
+
       for(int i = 0; i < cities.length; i++) {
          int x = cities[i].getx();
          int y = cities[i].gety();
-        	
+
          int position = randomGenerator.nextInt(5);
-         
+
          if(position == 1) {
             y += cityShiftAmount;
-         } 
+         }
          else if(position == 2) {
             x += cityShiftAmount;
-         } 
+         }
          else if(position == 3) {
             y -= cityShiftAmount;
-         } 
+         }
          else if(position == 4) {
             x -= cityShiftAmount;
          }
-         
+
          newPositions[i] = new City(x, y);
       }
-      
+
       return newPositions;
    }
 
@@ -257,70 +278,76 @@ public final class TSP {
        */
       ClassLoader loader = ClassLoader.getSystemClassLoader();
       loader.setDefaultAssertionStatus(true);
-   
+
       DateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
       Date today = Calendar.getInstance().getTime();
       String currentTime  = df.format(today);
-   
+
       int runs;
       boolean display = false;
       String formatMessage = "Usage: java TSP 1 [gui] \n java TSP [Runs] [gui]";
-   
+
       if (args.length < 1) {
          System.out.println("Please enter the arguments");
          System.out.println(formatMessage);
          display = false;
-      } 
+      }
       else {
-      
+
          if (args.length > 1) {
-            display = true; 
+            display = true;
          }
-      
+
          try {
             cityCount = 50;
             populationSize = 100;
             runs = Integer.parseInt(args[0]);
-         
+
             if(display) {
                frame = new JFrame("Traveling Salesman");
                statsArea = new Panel();
-            
+
                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                frame.pack();
                frame.setSize(width + 300, height);
                frame.setResizable(false);
                frame.setLayout(new BorderLayout());
-               
+
                statsText = new TextArea(35, 35);
                statsText.setEditable(false);
-            
+
                statsArea.add(statsText);
                frame.add(statsArea, BorderLayout.EAST);
-               
+
                frame.setVisible(true);
             }
-         
-         
+
+
             min = 0;
             avg = 0;
             max = 0;
             sum = 0;
-            
+
             String currentWorkingDirectory = Paths.get(".").toAbsolutePath().normalize().toString();
             originalCities = cities = LoadCitiesFromFile(currentWorkingDirectory+"/"+"CityList.txt", cities);
 
+            /* ADDED BY STNKAR012 */
             Chromosome.distanceMatrix = new double [cities.length][cities.length];
             Chromosome.distanceMatrix = updataDistanceMatrix(Chromosome.distanceMatrix, cities);
+            String progressString;
+            /* ADDED BY STNKAR012 */
+
+
 
 
             final long startTime = System.currentTimeMillis();
             writeLog("Run Stats for experiment at: " + currentTime);
             for (int y = 1; y <= runs; y++) {
+               progressString = "";
                Evolution.mutationRate = Evolution.startMutationRate;
                genMin = 0;
                print(display,  "Run " + y + "\n");
-            
+
             // create the initial population of chromosomes
                chromosomes = new Chromosome[populationSize];
                for (int x = 0; x < populationSize; x++) {
@@ -331,7 +358,7 @@ public final class TSP {
 
                generation = 0;
                double thisCost = 0.0;
-            
+
                while (generation < 100) {
                   evolve(generation);
                   if(generation % 5 == 0 )
@@ -340,15 +367,15 @@ public final class TSP {
                       Chromosome.distanceMatrix = updataDistanceMatrix(Chromosome.distanceMatrix, cities);
                   }
                   generation++;
-               
+
                   Chromosome.sortChromosomes(chromosomes, populationSize);
                   double cost = chromosomes[0].getCost();
                   thisCost = cost;
-               
+
                   if (thisCost < genMin || genMin == 0) {
                      genMin = thisCost;
                   }
-                  
+
                   NumberFormat nf = NumberFormat.getInstance();
                   nf.setMinimumFractionDigits(2);
                   nf.setMinimumFractionDigits(2);
@@ -356,24 +383,33 @@ public final class TSP {
                   if((generation + 1) % 20 == 0) {
                       print(display, "Gen: " + generation + " Cost: " + (int) thisCost);
                   }
-               
+
                   if(display) {
                      updateGUI();
                   }
+				  if(generation < 100)
+				  {
+               	      progressString += thisCost + ", ";
+				  }
+				  else{
+					  progressString += thisCost;
+				  }
                }
-            
+
                writeLog(genMin + "");
-            
+
+               logProgress(progressString, y);
+
                if (genMin > max) {
                   max = genMin;
                }
-            
+
                if (genMin < min || min == 0) {
                   min = genMin;
                }
-            
+
                sum +=  genMin;
-            
+
                print(display, "");
             }
 
@@ -386,8 +422,8 @@ public final class TSP {
 
             print(display, "Time used for the " + runs + " runs is: " + round((endTime - startTime)/1000.0) + " seconds");
 
-                        
-         } 
+
+         }
          catch (NumberFormatException e) {
             System.out.println("Please ensure you enter integers for cities and population size");
             System.out.println(formatMessage);
