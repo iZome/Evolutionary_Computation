@@ -73,20 +73,21 @@ class Evolution{
 
         }
 
+        /*
         for (int i = 0; i<population.length; ++i){
             mutationPopulation[i] = simluatedAnnealing(
                     mutationPopulation[i],
                     cityList);
 
-        }
+        }*/
 
         Arrays.sort(population);
         Arrays.sort(mutationPopulation);
 
-        /*
+
         if(mutationPopulation[0].getCost() < population[0].getCost()) {
             mutationPopulation[0] = simluatedAnnealing(population[0], cityList);
-        }*/
+        }
 
         //checkChangeInCost(newPopulation, population);
 
@@ -339,8 +340,8 @@ class Evolution{
     {
 
         //temperature = findIntialTemperatur(timeInterval);
-        Chromosome currentSolution = new Chromosome(initialCitySolution.cityIndexes, initialCitySolution.cost);
-        Chromosome bestSolution = new Chromosome(initialCitySolution.cityIndexes, initialCitySolution.cost);
+        Chromosome currentSolution = new Chromosome(initialCitySolution.cityIndexes, cityList);
+        Chromosome bestSolution = new Chromosome(initialCitySolution.cityIndexes, cityList);
 
         CurrentAndBestSolution currentAndBestSolution = new CurrentAndBestSolution(currentSolution, bestSolution);
 
@@ -369,18 +370,18 @@ class Evolution{
             City [] cityList
     )
     {
-        Chromosome newSolution = makeNeighbor(currentAndBestSolution.getCurrentSolution().cityIndexes, cityList);
+        Chromosome newSolution = neighbor(currentAndBestSolution.getCurrentSolution().cityIndexes, cityList);
 
         double deltaFitness = newSolution.cost - currentAndBestSolution.getCurrentSolution().cost;
 
         double acceptanceProbability = Math.exp(-deltaFitness/temperature);
         if(random.nextFloat() < acceptanceProbability)
         {
-            currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
+            currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, cityList));
 
             if(newSolution.cost < currentAndBestSolution.getBestSolution().cost)
             {
-                currentAndBestSolution.setBestSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
+                currentAndBestSolution.setBestSolution(new Chromosome(newSolution.cityIndexes, cityList));
             }
         }
         return currentAndBestSolution;
@@ -392,6 +393,37 @@ class Evolution{
     {
         int downHillMoves = 0;
     }*/
+
+    private static Chromosome neighbor(
+            int [] cityIndexes,
+            City [] cityList
+    )
+    {
+        int [] newIndexes = Arrays.copyOf(cityIndexes, cityIndexes.length);
+
+        int start = 0; int stop = 0;
+
+        while(start == stop){
+            start = random.nextInt(newIndexes.length);
+            stop = random.nextInt(newIndexes.length);
+        }
+
+        if(start > stop){
+            int sTemp = stop;
+            stop = start;
+            start = sTemp;
+        }
+
+        while(start <= stop){
+            int tempValue = newIndexes[start];
+            newIndexes[start] = newIndexes[stop];
+            newIndexes[stop] = tempValue;
+            start++;
+            stop--;
+        }
+
+        return new Chromosome(newIndexes, cityList);
+    }
 
     /**
      * @param cityOrderSolution

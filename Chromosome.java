@@ -54,9 +54,11 @@ final class Chromosome implements Comparable<Chromosome> {
     void calculateCost(City[] cities) {
         cost = 0;
         for (int i = 0; i < cityIndexes.length - 1; i++) {
+            //double dist = cities[cityIndexes[i]].proximity(cities[cityIndexes[i + 1]]);
             double dist = distanceMatrix[cityIndexes[i]][cityIndexes[i + 1]];
             cost += dist;
         }
+        //cost += cities[cityIndexes[0]].proximity(cities[cityIndexes[cityIndexes.length - 1]]); //Adding return home
         cost += distanceMatrix[cityIndexes[0]][cityIndexes[cityIndexes.length - 1]]; //Adding return home
 
         
