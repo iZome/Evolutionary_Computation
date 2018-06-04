@@ -110,8 +110,7 @@ public final class TSP {
       }
    }
 
-    private static void logProgress(String content, int run) {
-        String filename = "progress.out";
+    private static void logProgress(String filename, String content, int run) {
         FileWriter out;
         boolean append = true;
 
@@ -225,7 +224,7 @@ public final class TSP {
 
    private static City[] MoveCities(City[]cities) {
       City[] newPositions = new City[cities.length];
-      Random randomGenerator = new Random(42); // SET SEED FOR TESTING
+      Random randomGenerator = new Random(); // SET SEED FOR TESTING
 
       for(int i = 0; i < cities.length; i++) {
          int x = cities[i].getx();
@@ -398,7 +397,8 @@ public final class TSP {
 
                writeLog(genMin + "");
 
-               logProgress(progressString, y);
+               logProgress("results_karsten.out", String.valueOf(genMin), y);
+               logProgress("progress.out", progressString, y);
 
                if (genMin > max) {
                   max = genMin;

@@ -15,7 +15,7 @@ class Evolution{
 	private static final boolean fittestSurvive = true;
 
 	/* One Five Rule parameters */
-	private static final boolean oneFiveActive = true;
+	private static final boolean oneFiveActive = false;
     private static final int oneFiveGenerationFrequency = 5;
     private static final double oneFiveChangeRate = 0.90;
     private static final double oneFiveRule = 0.20;
@@ -31,7 +31,7 @@ class Evolution{
 
 
     /* Class useful */
-    private static Random random = new Random(42); // SET SEED FOR TESTING
+    private static Random random = new Random(); // SET SEED FOR TESTING
     private static int successfulMutations = 0;
 
     /**
@@ -80,6 +80,8 @@ class Evolution{
                     cityList);
 
         }
+
+        Chromosome.sortChromosomes(population, population.length);
 
         //checkChangeInCost(newPopulation, population);
 

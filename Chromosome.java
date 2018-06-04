@@ -57,7 +57,6 @@ final class Chromosome {
             double dist = distanceMatrix[cityIndexes[i]][cityIndexes[i + 1]];
             cost += dist;
         }
-
         cost += distanceMatrix[cityIndexes[0]][cityIndexes[cityIndexes.length - 1]]; //Adding return home
 
         
