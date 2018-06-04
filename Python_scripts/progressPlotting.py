@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import os
 from operator import itemgetter
+import sys
 
 relativePath = os.path.dirname(os.path.realpath(__file__))
 
@@ -43,12 +44,15 @@ def plotProgress(data):
     plt.legend(["Worst", "Best", "Average"])
     plt.ylabel("Distance for best route")
     plt.xlabel("Generation")
-    plt.savefig(relativePath + "/plottedRuns.png")
+    plt.savefig(relativePath + "/plottedRunsNew2.png")
     plt.show()
 
 
 def main():
-    path = relativePath + "/../progress.out"
+    if(len(sys.argv) == 1):
+        path = relativePath + "/../progress.out"
+    else:
+        path = relativePath + "/" + sys.argv[1]
     loadedFile = loadFile(path)
     plotRuns = getMaxMinAvg(loadedFile)
     plotProgress(plotRuns)

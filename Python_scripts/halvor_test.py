@@ -15,7 +15,6 @@ def normalDistribution(x, sigma, mu):
 def readData(filename):
     data = []
     for line in reversed(open(filename).readlines()):
-        print(line)
         if ("Run Stats for experiment at:" in line):
             break
         try:
