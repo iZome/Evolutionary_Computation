@@ -3,7 +3,7 @@ import java.util.Random;
 import java.util.Arrays;
 import java.util.HashMap;
 
-final class Chromosome {
+final class Chromosome implements Comparable<Chromosome> {
 
     /**
      * The list of cities, which are the genes of this chromosome.
@@ -149,8 +149,9 @@ final class Chromosome {
 		return new Chromosome(cityIndexes, cities);
 	}
 
-	
-    
-    
-    
+
+    @Override
+    public int compareTo(Chromosome chromosome) {
+        return Double.valueOf(this.getCost()).compareTo(Double.valueOf(chromosome.getCost()));
+    }
 }

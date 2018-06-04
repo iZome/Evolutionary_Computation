@@ -9,10 +9,11 @@ class Evolution{
 
 
 	protected static double startMutationRate = 0.1;
-	protected static double mutationAmount = 0.3;
+	protected static double mutationAmount = 0.4;
+	protected static double crossOverAmount = 0.6;
 	protected static double mutationRate;
 	private static final int chromosomeFighters = 5;
-	private static final boolean fittestSurvive = true;
+	private static final boolean fittestSurvive = false;
 
 	/* One Five Rule parameters */
 	private static final boolean oneFiveActive = false;
@@ -22,11 +23,9 @@ class Evolution{
 
     /* Simulated Annealing parameters */
 
-    private static double defaultTemperature = 100;
-    private static double defaultBetaInterval = 1;
-    private static int defaultMaxTime = 10;
-    private static int defaultTimeInterval = 1;
-    private static final double coolingEnhancer = 0.05;
+    private static double defaultTemperature = 1.0;
+    private static int defaultMaxTime = 10000;
+    private static final double coolingEnhancer = 0.996;
 
 
 
@@ -75,22 +74,32 @@ class Evolution{
         }
 
         for (int i = 0; i<population.length; ++i){
-            population[i] = simluatedAnnealing(
+            mutationPopulation[i] = simluatedAnnealing(
                     mutationPopulation[i],
                     cityList);
 
         }
 
-        Chromosome.sortChromosomes(population, population.length);
+        Arrays.sort(population);
+        Arrays.sort(mutationPopulation);
+
+        /*
+        if(mutationPopulation[0].getCost() < population[0].getCost()) {
+            mutationPopulation[0] = simluatedAnnealing(population[0], cityList);
+        }*/
 
         //checkChangeInCost(newPopulation, population);
+
+        if(!checkValidCityIndexes(mutationPopulation)){
+            System.out.println("Error in chromosomes");
+        }
 
         if(oneFiveActive)
         {
             oneFiveRuleAddaptiveMutation(crossOverPopulation, mutationPopulation, generation);
         }
 
-        return population;
+        return mutationPopulation;
     }
     /**
 	 * The method used to generate a mutant of a chromosome
@@ -128,7 +137,7 @@ class Evolution{
             Chromosome original,
             City [] cityList)
     {
-        if(random.nextFloat() < mutationRate)
+        if(random.nextFloat() < mutationAmount)
         {
             Chromosome mutated = makeNeighbor(original.cityIndexes, cityList);
             return(mutated);
@@ -152,43 +161,42 @@ class Evolution{
     )
     {
         int [] newCityIndexes = new int[parent1.getCities().length];
-        Arrays.fill(newCityIndexes, -1);
+        if(random.nextFloat() < crossOverAmount) {
 
-        int subsetStartPos = (int) (random.nextFloat() * newCityIndexes.length);
-        int subsetEndPos = (int) (random.nextFloat() * newCityIndexes.length);
+            Arrays.fill(newCityIndexes, -1);
 
-        for(int i = 0;
-            i < newCityIndexes.length;
-            i++)
-        {
-            if(subsetStartPos < subsetEndPos && (i > subsetStartPos && i < subsetEndPos))
-            {
-                newCityIndexes[i] = parent1.cityIndexes[i];
+            int subsetStartPos = (int) (random.nextFloat() * newCityIndexes.length);
+            int subsetEndPos = (int) (random.nextFloat() * newCityIndexes.length);
+
+            for (int i = 0;
+                 i < newCityIndexes.length;
+                 i++) {
+                if (subsetStartPos < subsetEndPos && (i > subsetStartPos && i < subsetEndPos)) {
+                    newCityIndexes[i] = parent1.cityIndexes[i];
+                } else if (subsetStartPos > subsetEndPos && !(i < subsetStartPos && i > subsetEndPos)) {
+                    newCityIndexes[i] = parent1.cityIndexes[i];
+                }
             }
-            else if (subsetStartPos > subsetEndPos && !(i < subsetStartPos && i > subsetEndPos))
-            {
-                newCityIndexes[i] = parent1.cityIndexes[i];
-            }
-        }
 
-        for(int i = 0;
-            i < newCityIndexes.length;
-            i++)
-        {
-            final int checkPos = parent2.cityIndexes[i];
-            if(!IntStream.of(newCityIndexes).anyMatch(x -> x == checkPos))
-            {
-                for(int j = 0;
-                    j < newCityIndexes.length;
-                    j++)
-                {
-                    if(newCityIndexes[j] == -1)
-                    {
-                        newCityIndexes[j] = parent2.cityIndexes[i];
-                        break;
+            for (int i = 0;
+                 i < newCityIndexes.length;
+                 i++) {
+                final int checkPos = parent2.cityIndexes[i];
+                if (!IntStream.of(newCityIndexes).anyMatch(x -> x == checkPos)) {
+                    for (int j = 0;
+                         j < newCityIndexes.length;
+                         j++) {
+                        if (newCityIndexes[j] == -1) {
+                            newCityIndexes[j] = parent2.cityIndexes[i];
+                            break;
+                        }
                     }
                 }
             }
+        }
+
+        else{
+            newCityIndexes = parent1.cityIndexes;
         }
 
         if(IntStream.of(newCityIndexes).anyMatch(x -> x == -1))
@@ -287,39 +295,45 @@ class Evolution{
        return change;
    }
 
+   public static boolean checkValidCityIndexes(
+           Chromosome [] chromosomes
+   )
+   {
+       for(Chromosome chromosome: chromosomes){
+           if(Arrays.stream(chromosome.cityIndexes).distinct().count() != chromosome.cityIndexes.length){
+               return false;
+           }
+       }
+       return true;
+   }
+
     /* SIMULATED ANNEALING local search */
 
     /**
      * @return
      */
-    private static Chromosome simluatedAnnealing(
+    public static Chromosome simluatedAnnealing(
             Chromosome chromosome,
             City [] cityList
     ) {
         return simluatedAnnealing(
                 chromosome,
                 defaultTemperature ,
-                defaultBetaInterval ,
                 defaultMaxTime ,
-                defaultTimeInterval ,
                 cityList );
     }
 
     /**
      * @param initialCitySolution
      * @param temperature
-     * @param betaInterval
      * @param maxTime
-     * @param timeInterval
      * @param cityList
      * @return
      */
     private static Chromosome simluatedAnnealing(
             Chromosome initialCitySolution,
             double temperature,
-            double betaInterval,
             int maxTime,
-            int timeInterval,
             City [] cityList
     )
     {
@@ -331,13 +345,13 @@ class Evolution{
         CurrentAndBestSolution currentAndBestSolution = new CurrentAndBestSolution(currentSolution, bestSolution);
 
         int time = 0;
+        double startTemperature = temperature;
 
-        while(time <= maxTime && temperature > 10)
+        while(time <= maxTime)
         {
-            currentAndBestSolution = metropolis(currentAndBestSolution, temperature, timeInterval, cityList);
-            time = time + timeInterval;
-            temperature = temperature - temperature * coolingEnhancer;
-            timeInterval *= betaInterval;
+            temperature = startTemperature * Math.pow(coolingEnhancer, time);
+            currentAndBestSolution = annealing(currentAndBestSolution, temperature, cityList);
+            time = time + 1;
         }
 
         return(currentAndBestSolution.getBestSolution());
@@ -346,42 +360,28 @@ class Evolution{
     /**
      * @param currentAndBestSolution
      * @param temperature
-     * @param timeInterval
      * @param cityList
      * @return
      */
-    private static CurrentAndBestSolution metropolis(
+    private static CurrentAndBestSolution annealing(
             CurrentAndBestSolution currentAndBestSolution,
             double temperature,
-            int timeInterval,
             City [] cityList
     )
     {
-        while(timeInterval != 0)
+        Chromosome newSolution = makeNeighbor(currentAndBestSolution.getCurrentSolution().cityIndexes, cityList);
+
+        double deltaFitness = newSolution.cost - currentAndBestSolution.getCurrentSolution().cost;
+
+        double acceptanceProbability = Math.exp(-deltaFitness/temperature);
+        if(random.nextFloat() < acceptanceProbability)
         {
-            Chromosome newSolution = makeNeighbor(currentAndBestSolution.getCurrentSolution().cityIndexes, cityList);
+            currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
 
-            double deltaFitness = newSolution.cost - currentAndBestSolution.getCurrentSolution().cost;
-            if(deltaFitness < 0)
+            if(newSolution.cost < currentAndBestSolution.getBestSolution().cost)
             {
-                currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
-
-                if(newSolution.cost < currentAndBestSolution.getBestSolution().cost)
-                {
-                    currentAndBestSolution.setBestSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
-                }
+                currentAndBestSolution.setBestSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
             }
-            //else if( random.nextFloat() < exp(-deltaFitness/temperature))
-            else
-            {
-                double probabilityForChoosing = (1- deltaFitness/temperature)/
-                        (1- (currentAndBestSolution.getBestSolution().cost - newSolution.cost)/temperature);
-                if(random.nextFloat() < probabilityForChoosing)
-                {
-                    currentAndBestSolution.setCurrentSolution(new Chromosome(newSolution.cityIndexes, newSolution.cost));
-                }
-            }
-            timeInterval -= 1;
         }
         return currentAndBestSolution;
     }

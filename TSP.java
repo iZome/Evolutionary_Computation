@@ -26,6 +26,8 @@ public final class TSP {
 
    private static final int cityShiftAmount = 60; //DO NOT CHANGE THIS.
 
+   private static Random randomGenerator = new Random();
+
    /**
     * How many cities to use.
     */
@@ -224,7 +226,7 @@ public final class TSP {
 
    private static City[] MoveCities(City[]cities) {
       City[] newPositions = new City[cities.length];
-      Random randomGenerator = new Random(); // SET SEED FOR TESTING
+      //Random randomGenerator = new Random(); // SET SEED FOR TESTING
 
       for(int i = 0; i < cities.length; i++) {
          int x = cities[i].getx();
@@ -334,6 +336,8 @@ public final class TSP {
             Chromosome.distanceMatrix = new double [cities.length][cities.length];
             Chromosome.distanceMatrix = updataDistanceMatrix(Chromosome.distanceMatrix, cities);
             String progressString;
+
+            String results_karsten = "results_karsten" +  ".txt";//randomGenerator.nextInt() + ".txt";
             /* ADDED BY STNKAR012 */
 
 
@@ -397,7 +401,7 @@ public final class TSP {
 
                writeLog(genMin + "");
 
-               logProgress("results_karsten.out", String.valueOf(genMin), y);
+               logProgress(results_karsten, String.valueOf(genMin), y);
                logProgress("progress.out", progressString, y);
 
                if (genMin > max) {
