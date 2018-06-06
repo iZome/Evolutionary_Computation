@@ -9,7 +9,10 @@ Modifications made by me-Karsten.
 Repository with my implementation of a Genetic Algorithm with a local heuristic search used to solved the Dynamic Traveling Salesman Problem.
 The components consists of tournament parent selection, cross-over, mutation with adaptive step-size, generational
  survival selection and simulated annealing.
- 
+
  Below is a plot showing the "best", "worst" and average "fitness" of the method over 100 generations performing 100 runs.
 
 ![alt text](Python_scripts/results/plottedRuns.png "Development over generations.")
+
+{% include image.html url="Python_scripts/results/plottedRuns.png", description="Plot for method on Traveling Salesman" %}
+Sub
